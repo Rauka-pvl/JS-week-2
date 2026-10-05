@@ -1,0 +1,24 @@
+{
+  "name": "datashare-week2",
+  "version": "2.0.0",
+  "description": "DataShare API — REST-сервер на Node.js и Express (Практическая работа, неделя 2)",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "keywords": [
+    "javascript",
+    "node",
+    "express",
+    "rest",
+    "api",
+    "datashare"
+  ],
+  "author": "Аделканов Рауат, CS-302(с)",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}

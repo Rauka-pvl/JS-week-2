@@ -1,0 +1,257 @@
+{
+  "info": {
+    "name": "DataShare API — Неделя 2 (Аделканов Рауат, CS-302(с))",
+    "description": "REST API для предметной области «Книги» (вариант 2). Перед запуском: npm install && npm start.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" }
+  ],
+  "item": [
+    {
+      "name": "01. GET / — проверка API",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/", "host": ["{{baseUrl}}"], "path": [""] }
+      },
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Статус 200', () => pm.response.to.have.status(200));",
+        "pm.test('API is working', () => pm.expect(pm.response.json().message).to.eql('API is working'));"
+      ] } }]
+    },
+    {
+      "name": "02. GET /api/items — все книги",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/api/items", "host": ["{{baseUrl}}"], "path": ["api", "items"] }
+      },
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Статус 200', () => pm.response.to.have.status(200));",
+        "pm.test('count совпадает с длиной data', () => {",
+        "  const json = pm.response.json();",
+        "  pm.expect(json.count).to.eql(json.data.length);",
+        "});"
+      ] } }]
+    },
+    {
+      "name": "03. GET /api/items/:id — одна книга",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/api/items/3", "host": ["{{baseUrl}}"], "path": ["api", "items", "3"] }
+      },
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Статус 200', () => pm.response.to.have.status(200));",
+        "pm.test('id = 3', () => pm.expect(pm.response.json().data.id).to.eql(3));"
+      ] } }]
+    },
+    {
+      "name": "04. GET /api/items/:id — несуществующий id (404)",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/api/items/999", "host": ["{{baseUrl}}"], "path": ["api", "items", "999"] }
+      },
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Статус 404', () => pm.response.to.have.status(404));"
+      ] } }]
+    },
+    {
+      "name": "05. GET /api/items?search= — поиск",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/items?search=дьявол",
+          "host": ["{{baseUrl}}"], "path": ["api", "items"],
+          "query": [{ "key": "search", "value": "дьявол" }]
+        }
+      },
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Статус 200', () => pm.response.to.have.status(200));",
+        "pm.test('Найдена 1 книга', () => pm.expect(pm.response.json().count).to.eql(1));"
+      ] } }]
+    },
+    {
+      "name": "06. GET /api/items?category= — фильтр по категории",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/items?category=Фантастика",
+          "host": ["{{baseUrl}}"], "path": ["api", "items"],
+          "query": [{ "key": "category", "value": "Фантастика" }]
+        }
+      },
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Статус 200', () => pm.response.to.have.status(200));",
+        "pm.test('Все книги из категории Фантастика', () => {",
+        "  pm.response.json().data.forEach(item => pm.expect(item.category).to.eql('Фантастика'));",
+        "});"
+      ] } }]
+    },
+    {
+      "name": "07. POST /api/items — успешное создание (201)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Понедельник начинается в субботу\",\n  \"description\": \"Сатирическая повесть о программисте Привалове и НИИЧАВО\",\n  \"category\": \"Фантастика\",\n  \"price\": 3100,\n  \"author\": \"Аркадий и Борис Стругацкие\",\n  \"year\": 1965\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/items", "host": ["{{baseUrl}}"], "path": ["api", "items"] }
+      },
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Статус 201', () => pm.response.to.have.status(201));",
+        "pm.test('Есть id и createdAt', () => {",
+        "  const { data } = pm.response.json();",
+        "  pm.expect(data).to.have.property('id');",
+        "  pm.expect(data).to.have.property('createdAt');",
+        "  pm.collectionVariables.set('createdId', data.id);",
+        "});"
+      ] } }]
+    },
+    {
+      "name": "08. POST /api/items — неполные данные (400)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"title\": \"Книга без описания и цены\"\n}" },
+        "url": { "raw": "{{baseUrl}}/api/items", "host": ["{{baseUrl}}"], "path": ["api", "items"] }
+      },
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Статус 400', () => pm.response.to.have.status(400));"
+      ] } }]
+    },
+    {
+      "name": "09. POST /api/items — некорректная цена (400)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"title\": \"Тест\",\n  \"description\": \"Тест\",\n  \"category\": \"Роман\",\n  \"price\": \"дорого\"\n}" },
+        "url": { "raw": "{{baseUrl}}/api/items", "host": ["{{baseUrl}}"], "path": ["api", "items"] }
+      },
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Статус 400', () => pm.response.to.have.status(400));"
+      ] } }]
+    },
+    {
+      "name": "10. PUT /api/items/:id — изменение цены",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"price\": 3999\n}" },
+        "url": { "raw": "{{baseUrl}}/api/items/1", "host": ["{{baseUrl}}"], "path": ["api", "items", "1"] }
+      },
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Статус 200', () => pm.response.to.have.status(200));",
+        "pm.test('Цена обновлена', () => pm.expect(pm.response.json().data.price).to.eql(3999));"
+      ] } }]
+    },
+    {
+      "name": "11. PUT /api/items/:id — некорректная цена (400)",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"price\": -100\n}" },
+        "url": { "raw": "{{baseUrl}}/api/items/1", "host": ["{{baseUrl}}"], "path": ["api", "items", "1"] }
+      },
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Статус 400', () => pm.response.to.have.status(400));"
+      ] } }]
+    },
+    {
+      "name": "12. PUT /api/items/:id — несуществующий id (404)",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"price\": 1000\n}" },
+        "url": { "raw": "{{baseUrl}}/api/items/999", "host": ["{{baseUrl}}"], "path": ["api", "items", "999"] }
+      },
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Статус 404', () => pm.response.to.have.status(404));"
+      ] } }]
+    },
+    {
+      "name": "13. DELETE /api/items/:id — удаление",
+      "request": {
+        "method": "DELETE",
+        "url": { "raw": "{{baseUrl}}/api/items/2", "host": ["{{baseUrl}}"], "path": ["api", "items", "2"] }
+      },
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Статус 200', () => pm.response.to.have.status(200));"
+      ] } }]
+    },
+    {
+      "name": "14. GET /api/items/:id — после удаления (404)",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/api/items/2", "host": ["{{baseUrl}}"], "path": ["api", "items", "2"] }
+      },
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Статус 404', () => pm.response.to.have.status(404));"
+      ] } }]
+    },
+    {
+      "name": "15. GET /api/items/stats — статистика (вариант H)",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/api/items/stats", "host": ["{{baseUrl}}"], "path": ["api", "items", "stats"] }
+      },
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Статус 200', () => pm.response.to.have.status(200));",
+        "pm.test('Есть min/max/average', () => {",
+        "  const { data } = pm.response.json();",
+        "  pm.expect(data).to.include.keys('minPrice', 'maxPrice', 'averagePrice', 'categories');",
+        "});"
+      ] } }]
+    },
+    {
+      "name": "16. GET /api/items — сортировка и диапазон цен",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/items?minPrice=3000&maxPrice=4500&sort=price&order=desc",
+          "host": ["{{baseUrl}}"], "path": ["api", "items"],
+          "query": [
+            { "key": "minPrice", "value": "3000" },
+            { "key": "maxPrice", "value": "4500" },
+            { "key": "sort", "value": "price" },
+            { "key": "order", "value": "desc" }
+          ]
+        }
+      },
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Статус 200', () => pm.response.to.have.status(200));",
+        "pm.test('Отсортировано по убыванию цены', () => {",
+        "  const prices = pm.response.json().data.map(i => i.price);",
+        "  pm.expect(prices).to.eql([...prices].sort((a, b) => b - a));",
+        "});"
+      ] } }]
+    },
+    {
+      "name": "17. GET /api/items — пагинация",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/items?page=2&limit=3",
+          "host": ["{{baseUrl}}"], "path": ["api", "items"],
+          "query": [
+            { "key": "page", "value": "2" },
+            { "key": "limit", "value": "3" }
+          ]
+        }
+      },
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Статус 200', () => pm.response.to.have.status(200));",
+        "pm.test('Есть pagination', () => pm.expect(pm.response.json()).to.have.property('pagination'));"
+      ] } }]
+    },
+    {
+      "name": "18. GET неизвестный маршрут (404)",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/api/unknown", "host": ["{{baseUrl}}"], "path": ["api", "unknown"] }
+      },
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Статус 404', () => pm.response.to.have.status(404));"
+      ] } }]
+    }
+  ]
+}
